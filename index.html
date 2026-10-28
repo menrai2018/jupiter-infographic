@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Milky Way Planetary Explorer</title>
+  <title>Solar System Interactive Explorer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Inter:wght@300;400;500;600&display=swap');
 
     body {
       font-family: 'Inter', sans-serif;
@@ -20,228 +20,293 @@
     /* Stars Background */
     .stars-bg {
       background-image: 
-        radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-        radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 40px 70px, #38bdf8, rgba(0,0,0,0)),
         radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
-        radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0));
-      background-size: 200px 200px;
+        radial-gradient(2px 2px at 160px 120px, #818cf8, rgba(0,0,0,0));
+      background-size: 240px 240px;
     }
 
-    /* Planet 3D Sphere Styling */
-    .planet-sphere {
+    /* Interactive Solar System Diagram Styling */
+    .orbit-line {
+      border: 1px solid rgba(56, 189, 248, 0.15);
       border-radius: 50%;
-      position: relative;
-      transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-      transform-style: preserve-3d;
-    }
-
-    /* Custom Planet Gradient Textures */
-    .texture-mercury { background: radial-gradient(circle at 30% 30%, #a1a1aa, #4b5563, #18181b); box-shadow: inset -20px -20px 50px #000, 0 0 30px rgba(161, 161, 170, 0.3); }
-    .texture-venus   { background: radial-gradient(circle at 30% 30%, #fef08a, #d97706, #78350f); box-shadow: inset -20px -20px 50px #000, 0 0 30px rgba(217, 119, 6, 0.4); }
-    .texture-earth   { background: radial-gradient(circle at 30% 30%, #60a5fa, #1d4ed8, #064e3b); box-shadow: inset -20px -20px 50px #000, 0 0 30px rgba(59, 130, 246, 0.4); }
-    .texture-mars    { background: radial-gradient(circle at 30% 30%, #f87171, #dc2626, #450a0a); box-shadow: inset -20px -20px 50px #000, 0 0 30px rgba(220, 38, 38, 0.4); }
-    .texture-jupiter { background: linear-gradient(175deg, #78350f 0%, #f59e0b 20%, #78350f 40%, #d97706 60%, #451a03 80%); box-shadow: inset -20px -20px 50px #000, 0 0 40px rgba(217, 119, 6, 0.3); }
-    .texture-saturn  { background: radial-gradient(circle at 30% 30%, #fde68a, #b45309, #451a03); box-shadow: inset -20px -20px 50px #000, 0 0 30px rgba(245, 158, 11, 0.3); }
-    .texture-uranus  { background: radial-gradient(circle at 30% 30%, #a7f3d0, #0d9488, #134e4a); box-shadow: inset -20px -20px 50px #000, 0 0 30px rgba(13, 148, 136, 0.4); }
-    .texture-neptune { background: radial-gradient(circle at 30% 30%, #93c5fd, #2563eb, #1e3a8a); box-shadow: inset -20px -20px 50px #000, 0 0 30px rgba(37, 99, 235, 0.4); }
-
-    /* Saturn Ring */
-    .saturn-ring {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 160%;
+      transform: translate(-50%, -50%);
+      transition: all 0.3s ease;
+    }
+
+    .planet-node {
+      position: absolute;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .planet-node:hover {
+      transform: scale(1.35) !important;
+      z-index: 30;
+      box-shadow: 0 0 20px currentColor;
+    }
+
+    .planet-node.active-node {
+      transform: scale(1.4) !important;
+      z-index: 35;
+      box-shadow: 0 0 25px currentColor, 0 0 0 4px rgba(56, 189, 248, 0.4);
+    }
+
+    /* 3D Planet Display Glow & Spheres */
+    .planet-sphere-3d {
+      border-radius: 50%;
+      position: relative;
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transform-style: preserve-3d;
+    }
+
+    .texture-mercury { background: radial-gradient(circle at 35% 35%, #d4d4d8, #52525b, #18181b); box-shadow: inset -25px -25px 50px #000, 0 0 40px rgba(161, 161, 170, 0.25); }
+    .texture-venus   { background: radial-gradient(circle at 35% 35%, #fef08a, #d97706, #78350f); box-shadow: inset -25px -25px 50px #000, 0 0 50px rgba(217, 119, 6, 0.35); }
+    .texture-earth   { background: radial-gradient(circle at 35% 35%, #60a5fa, #1d4ed8, #064e3b); box-shadow: inset -25px -25px 50px #000, 0 0 50px rgba(59, 130, 246, 0.4); }
+    .texture-mars    { background: radial-gradient(circle at 35% 35%, #f87171, #dc2626, #450a0a); box-shadow: inset -25px -25px 50px #000, 0 0 45px rgba(220, 38, 38, 0.35); }
+    .texture-jupiter { background: linear-gradient(170deg, #78350f 0%, #f59e0b 25%, #78350f 45%, #d97706 70%, #451a03 90%); box-shadow: inset -25px -25px 50px #000, 0 0 50px rgba(217, 119, 6, 0.3); }
+    .texture-saturn  { background: radial-gradient(circle at 35% 35%, #fde68a, #b45309, #451a03); box-shadow: inset -25px -25px 50px #000, 0 0 45px rgba(245, 158, 11, 0.3); }
+    .texture-uranus  { background: radial-gradient(circle at 35% 35%, #a7f3d0, #0d9488, #134e4a); box-shadow: inset -25px -25px 50px #000, 0 0 50px rgba(13, 148, 136, 0.4); }
+    .texture-neptune { background: radial-gradient(circle at 35% 35%, #60a5fa, #2563eb, #1e3a8a); box-shadow: inset -25px -25px 50px #000, 0 0 60px rgba(37, 99, 235, 0.5); }
+
+    /* Saturn Ring */
+    .saturn-ring-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 170%;
       height: 40%;
-      border: 15px solid rgba(217, 119, 6, 0.4);
+      border: 14px solid rgba(217, 119, 6, 0.45);
       border-radius: 50%;
       transform: translate(-50%, -50%) rotateX(75deg);
       pointer-events: none;
     }
 
-    /* Scroll Animations */
-    .fade-in-section {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    /* Content Transition Effects */
+    .hud-fade {
+      transition: opacity 0.4s ease, transform 0.4s ease;
     }
-    .fade-in-section.is-visible {
-      opacity: 1;
-      transform: translateY(0);
+    .hud-fade-out {
+      opacity: 0;
+      transform: translateY(10px);
     }
   </style>
 </head>
-<body class="stars-bg">
+<body class="stars-bg min-h-screen flex flex-col justify-between">
 
-  <!-- Top Navigation -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <i class="fa-solid fa-globe text-cyan-400 text-xl"></i>
-      <span class="font-orbitron text-lg font-bold tracking-wider text-white">MILKY WAY EXPLORER</span>
+  <!-- Header -->
+  <header class="py-6 px-8 flex justify-between items-center border-b border-gray-800/60 bg-gray-950/40 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></div>
+      <span class="font-orbitron text-lg font-extrabold tracking-widest text-white">MILKY WAY // SOLAR SYSTEM</span>
     </div>
-    <div class="hidden md:flex gap-6 text-sm font-semibold text-gray-400">
-      <a href="#hero" class="hover:text-cyan-400 transition">Overview</a>
-      <a href="#selector" class="hover:text-cyan-400 transition">Planets</a>
-      <a href="#comparison" class="hover:text-cyan-400 transition">Data Matrix</a>
+    <div class="text-xs font-orbitron text-gray-500 uppercase tracking-wider hidden md:block">
+      Interactive Planetary Database
     </div>
-  </nav>
+  </header>
 
-  <!-- Hero Section -->
-  <section id="hero" class="min-h-screen flex flex-col justify-center items-center text-center px-4 pt-20 relative">
-    <div class="inline-block px-4 py-1.5 mb-4 border border-cyan-500/30 rounded-full bg-cyan-950/30 text-cyan-400 text-xs tracking-widest uppercase font-orbitron">
-      Solar System Journey
-    </div>
-    <h1 class="text-5xl md:text-7xl font-extrabold font-orbitron tracking-tight mb-6 bg-gradient-to-r from-white via-cyan-200 to-cyan-500 bg-clip-text text-transparent">
-      PLANETS OF THE MILKY WAY
-    </h1>
-    <p class="max-w-2xl text-gray-400 text-lg mb-8">
-      Explore the celestial bodies residing within our solar system—from scorching rocky worlds to massive gas giants.
-    </p>
-    <a href="#selector" class="px-8 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-full shadow-lg shadow-cyan-600/30 transition-all transform hover:scale-105">
-      Explore Planets
-    </a>
-  </section>
+  <!-- Main Explorer Interface -->
+  <main class="max-w-7xl mx-auto w-full px-4 py-8 flex-grow flex flex-col justify-center">
 
-  <!-- Interactive Planet Selector Section -->
-  <section id="selector" class="py-20 px-6 max-w-6xl mx-auto fade-in-section">
-    <!-- Selector Buttons -->
-    <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-12">
-      <button onclick="selectPlanet('mercury')" class="planet-btn px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-sm font-orbitron hover:border-cyan-500 transition active" id="btn-mercury">Mercury</button>
-      <button onclick="selectPlanet('venus')" class="planet-btn px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-sm font-orbitron hover:border-cyan-500 transition" id="btn-venus">Venus</button>
-      <button onclick="selectPlanet('earth')" class="planet-btn px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-sm font-orbitron hover:border-cyan-500 transition" id="btn-earth">Earth</button>
-      <button onclick="selectPlanet('mars')" class="planet-btn px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-sm font-orbitron hover:border-cyan-500 transition" id="btn-mars">Mars</button>
-      <button onclick="selectPlanet('jupiter')" class="planet-btn px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-sm font-orbitron hover:border-cyan-500 transition" id="btn-jupiter">Jupiter</button>
-      <button onclick="selectPlanet('saturn')" class="planet-btn px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-sm font-orbitron hover:border-cyan-500 transition" id="btn-saturn">Saturn</button>
-      <button onclick="selectPlanet('uranus')" class="planet-btn px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-sm font-orbitron hover:border-cyan-500 transition" id="btn-uranus">Uranus</button>
-      <button onclick="selectPlanet('neptune')" class="planet-btn px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-sm font-orbitron hover:border-cyan-500 transition" id="btn-neptune">Neptune</button>
+    <!-- Planet Selector Pills -->
+    <div class="flex flex-wrap justify-center gap-2 mb-10">
+      <button onclick="selectPlanet('mercury')" id="btn-mercury" class="planet-btn px-4 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 text-xs font-orbitron tracking-wider text-gray-400 hover:text-white hover:border-cyan-500/50 transition">MERCURY</button>
+      <button onclick="selectPlanet('venus')" id="btn-venus" class="planet-btn px-4 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 text-xs font-orbitron tracking-wider text-gray-400 hover:text-white hover:border-cyan-500/50 transition">VENUS</button>
+      <button onclick="selectPlanet('earth')" id="btn-earth" class="planet-btn px-4 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 text-xs font-orbitron tracking-wider text-gray-400 hover:text-white hover:border-cyan-500/50 transition">EARTH</button>
+      <button onclick="selectPlanet('mars')" id="btn-mars" class="planet-btn px-4 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 text-xs font-orbitron tracking-wider text-gray-400 hover:text-white hover:border-cyan-500/50 transition">MARS</button>
+      <button onclick="selectPlanet('jupiter')" id="btn-jupiter" class="planet-btn px-4 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 text-xs font-orbitron tracking-wider text-gray-400 hover:text-white hover:border-cyan-500/50 transition">JUPITER</button>
+      <button onclick="selectPlanet('saturn')" id="btn-saturn" class="planet-btn px-4 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 text-xs font-orbitron tracking-wider text-gray-400 hover:text-white hover:border-cyan-500/50 transition">SATURN</button>
+      <button onclick="selectPlanet('uranus')" id="btn-uranus" class="planet-btn px-4 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 text-xs font-orbitron tracking-wider text-gray-400 hover:text-white hover:border-cyan-500/50 transition">URANUS</button>
+      <button onclick="selectPlanet('neptune')" id="btn-neptune" class="planet-btn px-4 py-1.5 rounded-full border border-gray-800 bg-gray-900/60 text-xs font-orbitron tracking-wider text-gray-400 hover:text-white hover:border-cyan-500/50 transition">NEPTUNE</button>
     </div>
 
-    <!-- Planet Visual Card -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-gray-900/50 p-8 md:p-12 rounded-3xl border border-gray-800 backdrop-blur-md">
-      <!-- 3D Planet Display -->
-      <div class="flex justify-center items-center h-80 relative">
-        <div id="planet-visual" class="planet-sphere texture-mercury w-64 h-64">
-          <div id="saturn-ring-container" class="hidden">
-            <div class="saturn-ring"></div>
+    <!-- Main Section Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+
+      <!-- LEFT: Interactive Solar System Map -->
+      <div class="lg:col-span-6 bg-gray-950/40 border border-gray-800/80 rounded-3xl p-6 relative flex flex-col items-center justify-center min-h-[420px] backdrop-blur-sm overflow-hidden">
+        <div class="absolute top-4 left-6 text-xs font-orbitron text-cyan-400 tracking-widest uppercase">
+          <i class="fa-solid fa-compass mr-1.5"></i> Solar System Map
+        </div>
+        
+        <!-- Solar System Orbits Map Container -->
+        <div class="relative w-[340px] h-[340px] sm:w-[400px] sm:h-[400px] flex items-center justify-center my-4">
+          <!-- Sun in Center -->
+          <div class="w-12 h-12 bg-amber-400 rounded-full shadow-[0_0_35px_#f59e0b] z-10 flex items-center justify-center text-[10px] font-orbitron font-bold text-amber-950">
+            SUN
+          </div>
+
+          <!-- Orbit Lines & Clickable Planet Nodes -->
+          <!-- Mercury -->
+          <div class="orbit-line w-[80px] h-[80px]"></div>
+          <div onclick="selectPlanet('mercury')" id="node-mercury" class="planet-node text-zinc-400 bg-zinc-400 w-3 h-3" style="top: calc(50% - 40px); left: 50%; transform: translate(-50%, -50%);" title="Mercury"></div>
+
+          <!-- Venus -->
+          <div class="orbit-line w-[120px] h-[120px]"></div>
+          <div onclick="selectPlanet('venus')" id="node-venus" class="planet-node text-amber-500 bg-amber-500 w-4 h-4" style="top: 50%; left: calc(50% + 60px); transform: translate(-50%, -50%);" title="Venus"></div>
+
+          <!-- Earth -->
+          <div class="orbit-line w-[165px] h-[165px]"></div>
+          <div onclick="selectPlanet('earth')" id="node-earth" class="planet-node text-blue-500 bg-blue-500 w-4 h-4" style="top: calc(50% + 82px); left: 50%; transform: translate(-50%, -50%);" title="Earth"></div>
+
+          <!-- Mars -->
+          <div class="orbit-line w-[210px] h-[210px]"></div>
+          <div onclick="selectPlanet('mars')" id="node-mars" class="planet-node text-red-500 bg-red-500 w-3.5 h-3.5" style="top: 50%; left: calc(50% - 105px); transform: translate(-50%, -50%);" title="Mars"></div>
+
+          <!-- Jupiter -->
+          <div class="orbit-line w-[260px] h-[260px]"></div>
+          <div onclick="selectPlanet('jupiter')" id="node-jupiter" class="planet-node text-amber-600 bg-amber-600 w-7 h-7" style="top: calc(50% - 92px); left: calc(50% + 92px); transform: translate(-50%, -50%);" title="Jupiter"></div>
+
+          <!-- Saturn -->
+          <div class="orbit-line w-[305px] h-[305px]"></div>
+          <div onclick="selectPlanet('saturn')" id="node-saturn" class="planet-node text-amber-300 bg-amber-300 w-6 h-6" style="top: calc(50% + 108px); left: calc(50% - 108px); transform: translate(-50%, -50%);" title="Saturn"></div>
+
+          <!-- Uranus -->
+          <div class="orbit-line w-[350px] h-[350px]"></div>
+          <div onclick="selectPlanet('uranus')" id="node-uranus" class="planet-node text-teal-400 bg-teal-400 w-5 h-5" style="top: calc(50% - 123px); left: calc(50% - 123px); transform: translate(-50%, -50%);" title="Uranus"></div>
+
+          <!-- Neptune -->
+          <div class="orbit-line w-[390px] h-[390px]"></div>
+          <div onclick="selectPlanet('neptune')" id="node-neptune" class="planet-node text-blue-600 bg-blue-600 w-5 h-5" style="top: calc(50% + 138px); left: calc(50% + 138px); transform: translate(-50%, -50%);" title="Neptune"></div>
+        </div>
+
+        <p class="text-[11px] font-orbitron text-gray-500 mt-2">Click any planet in the diagram to inspect</p>
+      </div>
+
+      <!-- RIGHT: Exact Futuristic HUD Detail Card from Image -->
+      <div class="lg:col-span-6">
+        <div class="bg-[#060b19] border border-cyan-950/80 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-8 items-center">
+            
+            <!-- 3D Rendered Sphere Container -->
+            <div class="sm:col-span-5 flex justify-center items-center h-56 relative">
+              <div id="planet-sphere" class="planet-sphere-3d texture-neptune w-48 h-48">
+                <div id="saturn-ring-box" class="hidden">
+                  <div class="saturn-ring-overlay"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Planet HUD Info Details -->
+            <div id="hud-content-box" class="sm:col-span-7 hud-fade">
+              <!-- Type & Name -->
+              <span id="planet-type" class="text-xs font-orbitron tracking-widest text-cyan-400 uppercase font-semibold">ICE GIANT</span>
+              <h1 id="planet-name" class="text-4xl sm:text-5xl font-black font-orbitron text-white tracking-tight mt-1 mb-3">Neptune</h1>
+              
+              <!-- Description -->
+              <p id="planet-desc" class="text-gray-400 text-sm leading-relaxed mb-6 font-normal">
+                Dark, cold, and whipped by supersonic winds, ice giant Neptune is the eighth and most distant major planet in our solar system.
+              </p>
+
+              <!-- 4 HUD Metric Boxes -->
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-[#030712]/90 border border-cyan-950/70 p-3.5 rounded-xl">
+                  <span class="text-[10px] font-orbitron tracking-widest text-gray-500 block uppercase mb-1">DIAMETER</span>
+                  <p id="planet-diameter" class="text-lg sm:text-xl font-bold font-orbitron text-white tracking-wide">49,244 km</p>
+                </div>
+                <div class="bg-[#030712]/90 border border-cyan-950/70 p-3.5 rounded-xl">
+                  <span class="text-[10px] font-orbitron tracking-widest text-gray-500 block uppercase mb-1">ORBIT PERIOD</span>
+                  <p id="planet-orbit" class="text-lg sm:text-xl font-bold font-orbitron text-white tracking-wide">165 Years</p>
+                </div>
+                <div class="bg-[#030712]/90 border border-cyan-950/70 p-3.5 rounded-xl">
+                  <span class="text-[10px] font-orbitron tracking-widest text-gray-500 block uppercase mb-1">MOONS</span>
+                  <p id="planet-moons" class="text-lg sm:text-xl font-bold font-orbitron text-white tracking-wide">16</p>
+                </div>
+                <div class="bg-[#030712]/90 border border-cyan-950/70 p-3.5 rounded-xl">
+                  <span class="text-[10px] font-orbitron tracking-widest text-gray-500 block uppercase mb-1">AVG TEMP</span>
+                  <p id="planet-temp" class="text-lg sm:text-xl font-bold font-orbitron text-white tracking-wide">-200°C</p>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       </div>
 
-      <!-- Planet Info -->
-      <div>
-        <span id="planet-type" class="text-xs font-orbitron tracking-widest text-cyan-400 uppercase">Terrestrial Planet</span>
-        <h2 id="planet-name" class="text-4xl md:text-5xl font-bold font-orbitron mt-2 mb-4">Mercury</h2>
-        <p id="planet-desc" class="text-gray-300 mb-6 leading-relaxed">
-          Mercury is the smallest planet in the Solar System and the closest to the Sun. Its orbit around the Sun takes 87.97 Earth days, the shortest of all Sun's planets.
-        </p>
-
-        <!-- Dynamic Stats Grid -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-gray-950/60 p-4 rounded-xl border border-gray-800">
-            <span class="text-xs text-gray-500 uppercase font-orbitron">Diameter</span>
-            <p id="planet-diameter" class="text-xl font-bold font-orbitron text-white">4,879 km</p>
-          </div>
-          <div class="bg-gray-950/60 p-4 rounded-xl border border-gray-800">
-            <span class="text-xs text-gray-500 uppercase font-orbitron">Orbit Period</span>
-            <p id="planet-orbit" class="text-xl font-bold font-orbitron text-white">88 Days</p>
-          </div>
-          <div class="bg-gray-950/60 p-4 rounded-xl border border-gray-800">
-            <span class="text-xs text-gray-500 uppercase font-orbitron">Moons</span>
-            <p id="planet-moons" class="text-xl font-bold font-orbitron text-white">0</p>
-          </div>
-          <div class="bg-gray-950/60 p-4 rounded-xl border border-gray-800">
-            <span class="text-xs text-gray-500 uppercase font-orbitron">Avg Temp</span>
-            <p id="planet-temp" class="text-xl font-bold font-orbitron text-white">167°C</p>
-          </div>
-        </div>
-      </div>
     </div>
-  </section>
-
-  <!-- Comparison Matrix Section -->
-  <section id="comparison" class="py-20 px-6 max-w-6xl mx-auto fade-in-section">
-    <h2 class="text-3xl font-bold font-orbitron text-center mb-10">Planetary Metrics Overview</h2>
-    <div class="overflow-x-auto bg-gray-900/40 border border-gray-800 rounded-2xl">
-      <table class="w-full text-left text-sm text-gray-400">
-        <thead class="bg-gray-950 text-cyan-400 font-orbitron text-xs uppercase border-b border-gray-800">
-          <tr>
-            <th class="p-4">Planet</th>
-            <th class="p-4">Type</th>
-            <th class="p-4">Diameter</th>
-            <th class="p-4">Distance from Sun</th>
-            <th class="p-4">Moons</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-800 font-medium">
-          <tr class="hover:bg-gray-800/40"><td class="p-4 font-bold text-white">Mercury</td><td class="p-4">Terrestrial</td><td class="p-4">4,879 km</td><td class="p-4">57.9M km</td><td class="p-4">0</td></tr>
-          <tr class="hover:bg-gray-800/40"><td class="p-4 font-bold text-white">Venus</td><td class="p-4">Terrestrial</td><td class="p-4">12,104 km</td><td class="p-4">108.2M km</td><td class="p-4">0</td></tr>
-          <tr class="hover:bg-gray-800/40"><td class="p-4 font-bold text-white">Earth</td><td class="p-4">Terrestrial</td><td class="p-4">12,742 km</td><td class="p-4">149.6M km</td><td class="p-4">1</td></tr>
-          <tr class="hover:bg-gray-800/40"><td class="p-4 font-bold text-white">Mars</td><td class="p-4">Terrestrial</td><td class="p-4">6,779 km</td><td class="p-4">227.9M km</td><td class="p-4">2</td></tr>
-          <tr class="hover:bg-gray-800/40"><td class="p-4 font-bold text-white">Jupiter</td><td class="p-4">Gas Giant</td><td class="p-4">139,820 km</td><td class="p-4">778.5M km</td><td class="p-4">95</td></tr>
-          <tr class="hover:bg-gray-800/40"><td class="p-4 font-bold text-white">Saturn</td><td class="p-4">Gas Giant</td><td class="p-4">116,460 km</td><td class="p-4">1.4B km</td><td class="p-4">146</td></tr>
-          <tr class="hover:bg-gray-800/40"><td class="p-4 font-bold text-white">Uranus</td><td class="p-4">Ice Giant</td><td class="p-4">50,724 km</td><td class="p-4">2.9B km</td><td class="p-4">28</td></tr>
-          <tr class="hover:bg-gray-800/40"><td class="p-4 font-bold text-white">Neptune</td><td class="p-4">Ice Giant</td><td class="p-4">49,244 km</td><td class="p-4">4.5B km</td><td class="p-4">16</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+  </main>
 
   <!-- Footer -->
-  <footer class="py-8 text-center text-xs text-gray-600 border-t border-gray-900">
-    Milky Way Interactive Explorer &copy; 2026. Built with HTML5 & Tailwind CSS.
+  <footer class="py-4 text-center text-[11px] font-orbitron text-gray-600 border-t border-gray-900/50">
+    SYSTEM STATUS: ONLINE // MILKY WAY EXPLORER 2026
   </footer>
 
-  <!-- Interactive JavaScript -->
+  <!-- Script for Dynamic Selection & Animations -->
   <script>
-    const planetData = {
-      mercury: { name: "Mercury", type: "Terrestrial Planet", desc: "Mercury is the smallest planet in the Solar System and closest to the Sun. Its surface is heavily cratered, similar to Earth's Moon.", diameter: "4,879 km", orbit: "88 Days", moons: "0", temp: "167°C", texture: "texture-mercury" },
-      venus:   { name: "Venus", type: "Terrestrial Planet", desc: "Venus has a thick, toxic atmosphere that traps heat in a runaway greenhouse effect, making it the hottest planet in our solar system.", diameter: "12,104 km", orbit: "225 Days", moons: "0", temp: "464°C", texture: "texture-venus" },
-      earth:   { name: "Earth", type: "Terrestrial Planet", desc: "Our home planet is the third planet from the Sun and the only astronomical object known to harbor life.", diameter: "12,742 km", orbit: "365.25 Days", moons: "1", temp: "15°C", texture: "texture-earth" },
-      mars:    { name: "Mars", type: "Terrestrial Planet", desc: "Mars is a dusty, cold, desert world with a very thin atmosphere. It is known as the Red Planet due to iron oxide on its surface.", diameter: "6,779 km", orbit: "687 Days", moons: "2", temp: "-65°C", texture: "texture-mars" },
-      jupiter: { name: "Jupiter", type: "Gas Giant", desc: "Jupiter is more than twice as massive as all the other planets combined. Its iconic Great Red Spot is a giant storm larger than Earth.", diameter: "139,820 km", orbit: "12 Years", moons: "95", temp: "-110°C", texture: "texture-jupiter" },
-      saturn:  { name: "Saturn", type: "Gas Giant", desc: "Adorned with a dazzling, complex system of icy rings, Saturn is unique among the planets. It is a massive ball made mostly of hydrogen and helium.", diameter: "116,460 km", orbit: "29 Years", moons: "146", temp: "-140°C", texture: "texture-saturn" },
-      uranus:  { name: "Uranus", type: "Ice Giant", desc: "Uranus is an ice giant with a unique tilt—it rotates almost on its side. It gets its blue-green color from methane gas in its atmosphere.", diameter: "50,724 km", orbit: "84 Years", moons: "28", temp: "-195°C", texture: "texture-uranus" },
-      neptune: { name: "Neptune", type: "Ice Giant", desc: "Dark, cold, and whipped by supersonic winds, ice giant Neptune is the eighth and most distant major planet in our solar system.", diameter: "49,244 km", orbit: "165 Years", moons: "16", temp: "-200°C", texture: "texture-neptune" }
+    const planets = {
+      mercury: { name: "Mercury", type: "TERRESTRIAL PLANET", desc: "Mercury is the smallest planet in the Solar System and closest to the Sun. Its surface is covered with heavily cratered basins.", diameter: "4,879 km", orbit: "88 Days", moons: "0", temp: "167°C", texture: "texture-mercury" },
+      venus:   { name: "Venus", type: "TERRESTRIAL PLANET", desc: "Venus has a thick, toxic atmosphere that traps heat in a runaway greenhouse effect, making it the hottest planet in the solar system.", diameter: "12,104 km", orbit: "225 Days", moons: "0", temp: "464°C", texture: "texture-venus" },
+      earth:   { name: "Earth", type: "TERRESTRIAL PLANET", desc: "Our home planet is the third planet from the Sun and the only astronomical object known to harbor life and liquid oceans.", diameter: "12,742 km", orbit: "365.25 Days", moons: "1", temp: "15°C", texture: "texture-earth" },
+      mars:    { name: "Mars", type: "TERRESTRIAL PLANET", desc: "Mars is a dusty, cold, desert world with a thin atmosphere. Known as the Red Planet due to iron oxide rust on its surface.", diameter: "6,779 km", orbit: "687 Days", moons: "2", temp: "-65°C", texture: "texture-mars" },
+      jupiter: { name: "Jupiter", type: "GAS GIANT", desc: "Jupiter is more than twice as massive as all other planets combined. Its iconic Great Red Spot storm is larger than Earth.", diameter: "139,820 km", orbit: "12 Years", moons: "95", temp: "-110°C", texture: "texture-jupiter" },
+      saturn:  { name: "Saturn", type: "GAS GIANT", desc: "Adorned with a dazzling system of icy rings, Saturn is unique. It is a massive gas sphere composed mostly of hydrogen.", diameter: "116,460 km", orbit: "29 Years", moons: "146", temp: "-140°C", texture: "texture-saturn" },
+      uranus:  { name: "Uranus", type: "ICE GIANT", desc: "Uranus is an ice giant with a unique tilt—it rotates almost on its side. Its blue-green atmosphere is rich in methane.", diameter: "50,724 km", orbit: "84 Years", moons: "28", temp: "-195°C", texture: "texture-uranus" },
+      neptune: { name: "Neptune", type: "ICE GIANT", desc: "Dark, cold, and whipped by supersonic winds, ice giant Neptune is the eighth and most distant major planet in our solar system.", diameter: "49,244 km", orbit: "165 Years", moons: "16", temp: "-200°C", texture: "texture-neptune" }
     };
 
     function selectPlanet(key) {
-      const data = planetData[key];
-      const visual = document.getElementById('planet-visual');
-      const saturnRing = document.getElementById('saturn-ring-container');
+      const data = planets[key];
+      const sphere = document.getElementById('planet-sphere');
+      const hudContent = document.getElementById('hud-content-box');
+      const saturnRing = document.getElementById('saturn-ring-box');
 
-      // Update text details
-      document.getElementById('planet-name').innerText = data.name;
-      document.getElementById('planet-type').innerText = data.type;
-      document.getElementById('planet-desc').innerText = data.desc;
-      document.getElementById('planet-diameter').innerText = data.diameter;
-      document.getElementById('planet-orbit').innerText = data.orbit;
-      document.getElementById('planet-moons').innerText = data.moons;
-      document.getElementById('planet-temp').innerText = data.temp;
+      // Trigger smooth fade out
+      hudContent.classList.add('hud-fade-out');
 
-      // Update Planet Texture Class
-      visual.className = `planet-sphere w-64 h-64 ${data.texture}`;
+      setTimeout(() => {
+        // Update Content
+        document.getElementById('planet-name').innerText = data.name;
+        document.getElementById('planet-type').innerText = data.type;
+        document.getElementById('planet-desc').innerText = data.desc;
+        document.getElementById('planet-diameter').innerText = data.diameter;
+        document.getElementById('planet-orbit').innerText = data.orbit;
+        document.getElementById('planet-moons').innerText = data.moons;
+        document.getElementById('planet-temp').innerText = data.temp;
 
-      // Toggle Saturn Ring
-      if (key === 'saturn') {
-        saturnRing.classList.remove('hidden');
-      } else {
-        saturnRing.classList.add('hidden');
+        // Update 3D Sphere Texture
+        sphere.className = `planet-sphere-3d w-48 h-48 ${data.texture}`;
+
+        // Toggle Saturn Ring
+        if (key === 'saturn') {
+          saturnRing.classList.remove('hidden');
+        } else {
+          saturnRing.classList.add('hidden');
+        }
+
+        // Trigger smooth fade in
+        hudContent.classList.remove('hud-fade-out');
+      }, 200);
+
+      // Active Top Buttons Styling
+      document.querySelectorAll('.planet-btn').forEach(btn => {
+        btn.classList.remove('border-cyan-400', 'text-cyan-400', 'bg-cyan-950/40');
+      });
+      const activeBtn = document.getElementById(`btn-${key}`);
+      if (activeBtn) {
+        activeBtn.classList.add('border-cyan-400', 'text-cyan-400', 'bg-cyan-950/40');
       }
 
-      // Button active states
-      document.querySelectorAll('.planet-btn').forEach(btn => btn.classList.remove('border-cyan-500', 'bg-cyan-950/50'));
-      document.getElementById(`btn-${key}`).classList.add('border-cyan-500', 'bg-cyan-950/50');
+      // Active Solar System Map Nodes Styling
+      document.querySelectorAll('.planet-node').forEach(node => {
+        node.classList.remove('active-node');
+      });
+      const activeNode = document.getElementById(`node-${key}`);
+      if (activeNode) {
+        activeNode.classList.add('active-node');
+      }
     }
 
-    // Scroll Fade-in Animation Observer
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.fade-in-section').forEach(section => observer.observe(section));
+    // Default selection on launch
+    selectPlanet('neptune');
   </script>
 </body>
 </html>
