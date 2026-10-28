@@ -69,7 +69,7 @@
       <span class="font-orbitron text-lg font-extrabold tracking-widest text-white">MILKY WAY // CINEMATIC 3D</span>
     </div>
     <div class="text-xs font-orbitron text-slate-400 uppercase tracking-wider hidden md:block">
-      Spaceship Transit Enabled
+      Curved Flight Trajectory Active
     </div>
   </header>
 
@@ -96,7 +96,7 @@
         
         <!-- Controls HUD overlay -->
         <div class="absolute top-4 left-6 text-xs font-orbitron text-cyan-400 tracking-widest uppercase z-10 pointer-events-none flex items-center gap-2">
-          <i class="fa-solid fa-shuttle-space"></i> Spaceship 3D Flight View
+          <i class="fa-solid fa-shuttle-space"></i> Curved Flight Mode
         </div>
 
         <button onclick="resetCameraView()" class="absolute top-4 right-6 text-[10px] font-orbitron text-xs bg-slate-900 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-500 px-3 py-1.5 rounded-lg text-slate-300 hover:text-cyan-400 transition z-10 shadow-lg">
@@ -107,7 +107,7 @@
         <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
 
         <div class="absolute bottom-3 text-[10px] font-orbitron text-slate-400 pointer-events-none z-10 bg-slate-950/70 px-3 py-1 rounded-full border border-slate-800">
-          <i class="fa-solid fa-rocket mr-1"></i> CLICK ANY PLANET TO LAUNCH SPACESHIP TRANSIT
+          <i class="fa-solid fa-rocket mr-1"></i> CLICK PLANET TO FLY CURVED TRAJECTORY
         </div>
       </div>
 
@@ -170,7 +170,7 @@
     SYSTEM STATUS: ONLINE // CINEMATIC 3D SOLAR EXPLORER 2026
   </footer>
 
-  <!-- Script: Three.js 3D Engine + 3D Spaceship & Smooth Orbit Controls -->
+  <!-- Script: Three.js 3D Engine + Curved Arc Flight Trajectory -->
   <script>
     const planetsData = {
       mercury: { name: "Mercury", type: "TERRESTRIAL PLANET", desc: "Mercury is the smallest planet in the Solar System and closest to the Sun. Its surface is heavily cratered.", diameter: "4,879 km", orbit: "88 Days", moons: "0", temp: "167°C", texture: "texture-mercury", color: 0xa1a1aa, radius: 1.2, dist: 12 },
@@ -187,16 +187,15 @@
     let planetMeshes = {};
     let spaceshipGroup;
 
-    // Flight & Camera Animation Transition Variables
+    // Curved Flight Path Variables
+    let flightCurve = null;
     let isTransitioning = false;
     let transitionProgress = 0;
+
     const startCamPos = new THREE.Vector3();
     const startCamTarget = new THREE.Vector3();
     const targetCamPos = new THREE.Vector3();
     const targetCamTarget = new THREE.Vector3();
-
-    const shipStartPos = new THREE.Vector3();
-    const shipTargetPos = new THREE.Vector3();
 
     const defaultCamPos = new THREE.Vector3(0, 50, 95);
     const defaultCamTarget = new THREE.Vector3(0, 0, 0);
@@ -242,7 +241,7 @@
       rightWing.scale.x = -1;
       spaceshipGroup.add(rightWing);
 
-      // Engine Thrusters Glow
+      // Engine Thrusters
       const engineGeo = new THREE.CylinderGeometry(0.25, 0.35, 0.6, 12);
       const engineMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9 });
       
@@ -287,7 +286,6 @@
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
 
-      // Stop camera auto-glide as soon as user drags or zooms manually
       controls.addEventListener('start', () => {
         isTransitioning = false;
       });
@@ -353,12 +351,9 @@
       // Construct 3D Shuttle
       createSpaceship();
 
-      // Initialize spaceship at Neptune
       if (planetMeshes['neptune']) {
         const initialPos = planetMeshes['neptune'].position.clone().add(new THREE.Vector3(3, 1.5, 3));
         spaceshipGroup.position.copy(initialPos);
-        shipStartPos.copy(initialPos);
-        shipTargetPos.copy(initialPos);
       }
 
       // Raycaster for Planet Clicks
@@ -398,33 +393,36 @@
         mesh.rotation.y += 0.005;
       });
 
-      // Handle Smooth Spaceship Flight & Camera Transit
+      // Handle Curved Flight Trajectory & Camera Transition
       if (isTransitioning) {
-        transitionProgress += 0.02;
+        transitionProgress += 0.015; // Smooth flight speed
         if (transitionProgress >= 1) {
           transitionProgress = 1;
           isTransitioning = false;
         }
 
-        // Smooth Cubic Ease-InOut Curve
         const ease = transitionProgress < 0.5 
           ? 4 * transitionProgress * transitionProgress * transitionProgress 
           : 1 - Math.pow(-2 * transitionProgress + 2, 3) / 2;
         
-        // 1. Interpolate Spaceship position
-        spaceshipGroup.position.lerpVectors(shipStartPos, shipTargetPos, ease);
+        // 1. Move Spaceship along 3D Quadratic Curved Path (Arcing Upwards)
+        if (flightCurve) {
+          const currentPos = flightCurve.getPoint(ease);
+          spaceshipGroup.position.copy(currentPos);
 
-        // 2. Orient spaceship toward target destination
-        const currentTargetPos = new THREE.Vector3().lerpVectors(shipStartPos, shipTargetPos, Math.min(1, ease + 0.05));
-        spaceshipGroup.lookAt(currentTargetPos);
+          // Calculate forward tangent to orient ship head seamlessly along the curve
+          const lookAheadTime = Math.min(1, ease + 0.03);
+          const aheadPos = flightCurve.getPoint(lookAheadTime);
+          spaceshipGroup.lookAt(aheadPos);
+        }
 
-        // 3. Camera tracks transition
+        // 2. Camera tracks transit
         camera.position.lerpVectors(startCamPos, targetCamPos, ease);
         controls.target.lerpVectors(startCamTarget, targetCamTarget, ease);
       } else {
-        // Idle gentle spaceship hovering animation
+        // Idle gentle hovering
         if (spaceshipGroup) {
-          spaceshipGroup.position.y += Math.sin(Date.now() * 0.003) * 0.01;
+          spaceshipGroup.position.y += Math.sin(Date.now() * 0.003) * 0.008;
         }
       }
 
@@ -432,21 +430,31 @@
       renderer.render(scene, camera);
     }
 
-    function triggerCameraTransition(newCamPos, newTarget, newShipPos) {
+    // Function to calculate Quadratic Curved Arc Path (flying upwards in mid-flight)
+    function triggerCurvedFlightTransition(newCamPos, newTarget, destShipPos) {
+      const pStart = spaceshipGroup.position.clone();
+      const pEnd = destShipPos.clone();
+
+      // Calculate midpoint and elevate Y position to create an upward curve arc
+      const midPoint = new THREE.Vector3().addVectors(pStart, pEnd).multiplyScalar(0.5);
+      const distance = pStart.distanceTo(pEnd);
+      midPoint.y += Math.max(12, distance * 0.35); // Arc height proportional to distance
+
+      // Create 3D Quadratic Bezier Curve
+      flightCurve = new THREE.QuadraticBezierCurve3(pStart, midPoint, pEnd);
+
       startCamPos.copy(camera.position);
       startCamTarget.copy(controls.target);
       targetCamPos.copy(newCamPos);
       targetCamTarget.copy(newTarget);
-
-      shipStartPos.copy(spaceshipGroup.position);
-      shipTargetPos.copy(newShipPos);
 
       transitionProgress = 0;
       isTransitioning = true;
     }
 
     function resetCameraView() {
-      triggerCameraTransition(defaultCamPos, defaultCamTarget, spaceshipGroup.position.clone());
+      const pStart = spaceshipGroup.position.clone();
+      triggerCurvedFlightTransition(defaultCamPos, defaultCamTarget, pStart);
     }
 
     function selectPlanet(key) {
@@ -455,13 +463,13 @@
       const hudContent = document.getElementById('hud-content-box');
       const saturnRing = document.getElementById('saturn-ring-box');
 
-      // 1. Calculate Spaceship & Camera Target Positions
+      // 1. Calculate Target Positions for Curved Flight
       const targetMesh = planetMeshes[key];
       if (targetMesh) {
         const destShipPos = targetMesh.position.clone().add(new THREE.Vector3(data.radius * 1.5, data.radius * 0.8, data.radius * 1.5));
         const destCamPos = destShipPos.clone().add(new THREE.Vector3(data.radius * 3.5, data.radius * 2, data.radius * 4));
         
-        triggerCameraTransition(destCamPos, targetMesh.position, destShipPos);
+        triggerCurvedFlightTransition(destCamPos, targetMesh.position, destShipPos);
       }
 
       // 2. HUD Fade Animation
